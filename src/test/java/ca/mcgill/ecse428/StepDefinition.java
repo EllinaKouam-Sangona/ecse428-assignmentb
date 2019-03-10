@@ -6,6 +6,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.awt.Robot;
@@ -130,6 +131,8 @@ public class StepDefinition {
 	//Then
 	@Then("^the file is included in my email$")
 	public void theFileIsIncludedInTheEmail() throws Throwable {
+		WebElement file = chromeDriver.findElement(By.xpath("//*[contains(text(), 'Image.png')]"));
+		assertNotNull(file);
 	}
 
 	//Then
@@ -140,7 +143,10 @@ public class StepDefinition {
 	@And("^the email is sent$")
 	public void theEmailIsSent() throws Throwable {
 		chromeDriver.findElement(By.xpath("//div[contains(text(),'Send')]")).click();
-		chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);   
+		chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);  
+		chromeDriver.findElement(By.xpath("//*[contains(text(), 'Sent')]")).click();
+		WebElement email = chromeDriver.findElement(By.xpath("//*[contains(text(), 'Test')]"));
+		assertNotNull(email);
 	}
 
 
