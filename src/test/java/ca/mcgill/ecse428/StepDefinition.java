@@ -21,6 +21,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.*;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -39,6 +41,7 @@ public class StepDefinition {
 	private final String GMAIL_LOGIN_URL = "https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1";
 	private final String INBOX_URL = "https://mail.google.com/mail/u/0/#inbox";
 	private final String NEW_MESSAGE_URL = "https://mail.google.com/mail/u/0/#inbox?compose=new";
+	//String recipient;
 
 	//Given
 	@Given("^I am on the new email page$")
@@ -47,6 +50,9 @@ public class StepDefinition {
 		goTo(GMAIL_LOGIN_URL);
 
 		//Find username text box, enter username and click next to head to password page
+		WebDriverWait waitEmail = new WebDriverWait(chromeDriver, 10);
+		WebElement elmtEmail = waitEmail.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.name("identifier")));
 		WebElement userName = chromeDriver.findElement(By.name("identifier"));
 		userName.sendKeys(gmailUsername);
 		chromeDriver.findElement(By.id("identifierNext")).click();
@@ -55,30 +61,40 @@ public class StepDefinition {
 		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
 		WebElement password = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//input[@name='password']")));
 		password.sendKeys(gmailPassword);
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("passwordNext")));
 		chromeDriver.findElement(By.id("passwordNext")).click();
 
 		//Set explicit wait for the compose button to be detectable
 		WebElement composeBtn = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='z0']/div")));
 		composeBtn.click();
-		chromeDriver.findElement(By.xpath("//textarea[@name='to']")).sendKeys("chaimaefahmi@outlook.com");
-		chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-		chromeDriver.findElement(By.xpath("//input[@name='subjectbox']")).sendKeys("Test");
-		WebElement element = chromeDriver.findElement(By.xpath("//div[@class='Ar Au']//div"));
-		element.click();
-		element.sendKeys("Hello");
+		
 		System.out.println("Given working");
 	}
 
 	//When
-	@When("^I select the attach files button$")
+		@When("^I enter ([^\"]*) and the email body$")
+		public void IEnterTheRecipientAndEmailBody(String recipient) throws Throwable {
+			WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
+			WebElement elmt = wait.until(
+			        ExpectedConditions.visibilityOfElementLocated(By.xpath("//textarea[@name='to']")));
+			chromeDriver.findElement(By.xpath("//textarea[@name='to']")).sendKeys(recipient);
+			chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+			chromeDriver.findElement(By.xpath("//input[@name='subjectbox']")).sendKeys("Test");
+			WebElement element = chromeDriver.findElement(By.xpath("//div[@class='Ar Au']//div"));
+			element.click();
+			element.sendKeys("Hello");  
+		}
+		
+	//And
+	@And("^I select the attach files button$")
 	public void ISelectTheAttachFilesButton() throws Throwable {
 		chromeDriver.findElement(By.xpath("//div[contains(@class, 'a1 aaA aMZ')]")).click();  
 	}
 
 	//And
-	@And("^select the file to attach in my file explorer$")
-	public void ISelectTheFileToAttach() throws Throwable {
-		File file = new File("Image.png");
+	@And("^select the file to attach in my file explorer, ([^\"]*)$")
+	public void ISelectTheFileToAttach(String Image) throws Throwable {
+		File file = new File(Image);
 
 		StringSelection stringSelection= new StringSelection(file.getAbsolutePath());
 
@@ -87,12 +103,11 @@ public class StepDefinition {
 
 		Robot robot = new Robot();
 
-		robot.keyPress(KeyEvent.VK_META);                
-		robot.keyPress(KeyEvent.VK_TAB);                 
+		//robot.keyPress(KeyEvent.VK_META);                
+		//robot.keyPress(KeyEvent.VK_TAB);                 
 		robot.keyRelease(KeyEvent.VK_META);                 
 		robot.keyRelease(KeyEvent.VK_TAB);                 
 		robot.delay(500);
-
 
 		robot.keyPress(KeyEvent.VK_META);
 
@@ -129,33 +144,44 @@ public class StepDefinition {
 	}
 
 	//Then
-	@Then("^the file is included in my email$")
-	public void theFileIsIncludedInTheEmail() throws Throwable {
-		WebElement file = chromeDriver.findElement(By.xpath("//*[contains(text(), 'Image.png')]"));
+	@Then("^the file ([^\"]*) is included in my email$")
+	public void theFileIsIncludedInTheEmail(String Image) throws Throwable {
+		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
+		WebElement elmtSend = wait.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), Image)]")));
+		WebElement file = chromeDriver.findElement(By.xpath("//*[contains(text(), Image)]"));
 		assertNotNull(file);
 	}
 
 	//Then
 	@Then("^the open button should be non interactable$")
 	public void theOpenButtonShouldBeNonInteratable() throws Throwable {
+		chromeDriver.close();
 	}
 
 	@And("^the email is sent$")
-	public void theEmailIsSent() throws Throwable {
+	public void theEmailIsSent() throws Throwable {	
+		//chromeDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		Thread.sleep(3000);
 		chromeDriver.findElement(By.xpath("//div[contains(text(),'Send')]")).click();
-		chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);  
+		//chromeDriver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
+		WebElement elmt = wait.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), 'Sent')]")));
 		chromeDriver.findElement(By.xpath("//*[contains(text(), 'Sent')]")).click();
 		WebElement email = chromeDriver.findElement(By.xpath("//*[contains(text(), 'Test')]"));
 		assertNotNull(email);
+		chromeDriver.close();
 	}
 
 
+	
 	//Helper fcts
 	public void setupSeleniumDrivers() {
 		if (chromeDriver == null){
 			//System.setProperty("webdriver.chrome.driver", "C:\\Users\\ellin_000\\Desktop\\chromedriver.exe");
-			System.setProperty("chromedriver", "");
-			chromeDriver = new ChromeDriver();
+			System.setProperty("chromedriver","chromedriver");
+			chromeDriver= new ChromeDriver();
 			System.out.print("Finished settin up chrome driver.\n");
 		}
 	}
