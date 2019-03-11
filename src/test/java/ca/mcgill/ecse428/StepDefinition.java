@@ -5,11 +5,8 @@ import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import javafx.embed.swing.JFXPanel;
-//import javafx.scene.image.Image;
-//import javafx.scene.input.Clipboard;
+
 import java.lang.Object;
-import javafx.scene.input.ClipboardContent;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNotNull;
@@ -29,12 +26,19 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
+import static org.junit.Assert.fail;
+
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.chrome.*;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
@@ -46,20 +50,28 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class StepDefinition {
 
 	private WebDriver chromeDriver;
-	private final String gmailPassword = "ECSE428ASSB";
-	private final String gmailUsername = "ellina.kouam.sangona@gmail.com";
+	//	private final String gmailPassword = "ECSE428ASSB";
+	//	private final String gmailUsername = "ellina.kouam.sangona@gmail.com";
+	private final String gmailPassword = "Azerty1@";
+	private final String gmailUsername = "assignmentb428@gmail.com";
 	private final String GMAIL_LOGIN_URL = "https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&service=mail&sacu=1&rip=1";
 	private final String INBOX_URL = "https://mail.google.com/mail/u/0/#inbox";
 	private final String NEW_MESSAGE_URL = "https://mail.google.com/mail/u/0/#inbox?compose=new";
+
 	private BufferedImage img;
-	
+
+	//String recipient;
+
 	//Given
 	@Given("^I am on the new email page$")
-	public void i_am_on_the_new_email_page() throws Throwable{
+	public void i_am_on_the_new__email_page() throws Throwable{
 		setupSeleniumDrivers();
 		goTo(GMAIL_LOGIN_URL);
-		
+
 		//Find username text box, enter username and click next to head to password page
+		WebDriverWait waitEmail = new WebDriverWait(chromeDriver, 10);
+		WebElement elmtEmail = waitEmail.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.name("identifier")));
 		WebElement userName = chromeDriver.findElement(By.name("identifier"));
 		userName.sendKeys(gmailUsername);
 		chromeDriver.findElement(By.id("identifierNext")).click();
@@ -68,13 +80,28 @@ public class StepDefinition {
 		WebDriverWait wait = new WebDriverWait(chromeDriver, 20);
 		WebElement password = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//input[@name='password']")));
 		password.sendKeys(gmailPassword);
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("passwordNext")));
 		chromeDriver.findElement(By.id("passwordNext")).click();
-		
+
 		//Set explicit wait for the compose button to be detectable
 		WebElement composeBtn = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[@class='z0']/div")));
 		composeBtn.click();
 		
 		System.out.println("Given working");
+	}
+	
+	//When
+	@When("^I enter ([^\"]*) and the email body$")
+	public void IEnterTheRecipientAndEmailBody(String recipient) throws Throwable {
+		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
+		WebElement elmt = wait.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.xpath("//textarea[@name='to']")));
+		chromeDriver.findElement(By.xpath("//textarea[@name='to']")).sendKeys(recipient);
+		chromeDriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		chromeDriver.findElement(By.xpath("//input[@name='subjectbox']")).sendKeys("Test");
+		WebElement element = chromeDriver.findElement(By.xpath("//div[@class='Ar Au']//div"));
+		element.click();
+		element.sendKeys("Hello");  
 	}
 	
 	@When("^I drag a file from my computer into the email page, ([^\"]*)$")
@@ -101,40 +128,97 @@ public class StepDefinition {
 		System.out.println("When working");
 	}
 	
-	@When("^I select the attach files button$")
-	public void i_select_the_attach_files_button() throws Throwable {
+	@When("^I select the attach file button$")
+	public void i_select_the_attach_file_button() throws Throwable {
 		WebDriverWait wait = new WebDriverWait(chromeDriver, 60);
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[contains(@class, 'a1 aaA aMZ')]"))).click();  
 	}
 	
+	@And("^I select the attach files button$")
+	public void ISelectTheAttachFilesButton() throws Throwable {
+		chromeDriver.findElement(By.xpath("//div[contains(@class, 'a1 aaA aMZ')]")).click();  
+	}
+
 	//And
-		@And("^select the file to attach in my file explorer, ([^\"]*)")
-		public void i_select_the_file_to_attach(String Image) throws Throwable {
-			File file = new File(Image);
-			StringSelection stringSelection= new StringSelection(file.getAbsolutePath());
-			//Copy to clipboard 
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
-			System.out.print(stringSelection);
-			Robot robot = new Robot();
-			Thread.sleep(1000);
-		      
-			  // Press Enter
-			 robot.keyPress(KeyEvent.VK_ENTER);
-			 
-			// Release Enter
-			 robot.keyRelease(KeyEvent.VK_ENTER);
-			robot.keyPress(KeyEvent.VK_CONTROL);
-			robot.keyPress(KeyEvent.VK_V);
-			 
-			robot.keyRelease(KeyEvent.VK_CONTROL);
-			robot.keyRelease(KeyEvent.VK_V);
-			Thread.sleep(1000);
-			        
-			robot.keyPress(KeyEvent.VK_ENTER);
-			robot.keyRelease(KeyEvent.VK_ENTER);
+	@And("^select the file to attach in my file explorer, ([^\"]*)$")
+	public void ISelectTheFileToAttach(String Image) throws Throwable {
+		File file = new File(Image);
+
+		StringSelection stringSelection= new StringSelection(file.getAbsolutePath());
+
+		//Copy to clipboard 
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+
+		Robot robot = new Robot();
+
+		//robot.keyPress(KeyEvent.VK_META);                
+		//robot.keyPress(KeyEvent.VK_TAB);                 
+		robot.keyRelease(KeyEvent.VK_META);                 
+		robot.keyRelease(KeyEvent.VK_TAB);                 
+		robot.delay(500);
+
+		robot.keyPress(KeyEvent.VK_META);
+
+		robot.keyPress(KeyEvent.VK_SHIFT);                  
+		robot.keyPress(KeyEvent.VK_G);                 
+		robot.keyRelease(KeyEvent.VK_META);                
+		robot.keyRelease(KeyEvent.VK_SHIFT);                  
+		robot.keyRelease(KeyEvent.VK_G);
+
+		robot.keyPress(KeyEvent.VK_META);                 
+		robot.keyPress(KeyEvent.VK_V);                 
+		robot.keyRelease(KeyEvent.VK_META);                  
+		robot.keyRelease(KeyEvent.VK_V);
+
+		robot.keyPress(KeyEvent.VK_ENTER);                 
+		robot.keyRelease(KeyEvent.VK_ENTER);  
+
+		robot.delay(1000);                 
+
+		robot.keyPress(KeyEvent.VK_ENTER);                  
+		robot.keyRelease(KeyEvent.VK_ENTER);
+	}
+
+	//And
+	@And("^I click open on the file explorer$")
+	public void IClickOpenOnTheFileExplorer() throws Throwable {
+		try {
+		chromeDriver.findElement(By.id("Open")).click();
+		fail("Expected NoSuchElementException");
 		}
+		catch(NoSuchElementException e) {
+			
+		}
+	}
+	
+	/*@And("^select the file to attach in my file explorer, ([^\"]*)")
+	public void i_select_the_file_to_attach(String Image) throws Throwable {
+		File file = new File(Image);
+		StringSelection stringSelection= new StringSelection(file.getAbsolutePath());
+		//Copy to clipboard 
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, null);
+		System.out.print(stringSelection);
+		Robot robot = new Robot();
+		Thread.sleep(1000);
+	      
+		  // Press Enter
+		 robot.keyPress(KeyEvent.VK_ENTER);
+		 
+		// Release Enter
+		 robot.keyRelease(KeyEvent.VK_ENTER);
+		robot.keyPress(KeyEvent.VK_CONTROL);
+		robot.keyPress(KeyEvent.VK_V);
+		 
+		robot.keyRelease(KeyEvent.VK_CONTROL);
+		robot.keyRelease(KeyEvent.VK_V);
+		Thread.sleep(1000);
+		        
+		robot.keyPress(KeyEvent.VK_ENTER);
+		robot.keyRelease(KeyEvent.VK_ENTER);
+	}*/
 
 	
+	//Then
 	@Then("^the file ([^\"]*) is included in my email$")
 	public void the_file_is_included_in_my_email(String Image) throws Throwable{
 		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
@@ -142,20 +226,15 @@ public class StepDefinition {
 		        ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), Image)]")));
 		WebElement file = chromeDriver.findElement(By.xpath("//*[contains(text(), Image)]"));
 		assertNotNull(file);
-		//System.out.println("File icon present!");
 		System.out.println("Then working");
-		//throw new PendingException();
 	}
 	
 	@Then("^a prompt saying Your file is larger than 25 MB appears")
 	public void a_prompt_saying_Your_file_is_larger_than_25_MB_appears() throws Throwable{
 		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
 		WebElement prompt = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[class='HyIydd']")));
-		//wait.until(ExpectedConditions.alertIsPresent()); 
-		//String prompt = chromeDriver.switchTo().alert().getText();
 		assertNotNull(prompt);
 		System.out.println("prompt");
-		//assertThat(prompt, containsString("Your file is larger than 25 MB."));
 	}
 	
 	@And("^the email is sent to ([^\"]*) with my file$")
@@ -189,13 +268,34 @@ public class StepDefinition {
 		System.out.println("Email" + subject +"sent!");
 	}
 
-	
+	@Then("^the open button should be non interactable$")
+	public void theOpenButtonShouldBeNonInteratable() throws Throwable {
+		chromeDriver.close();
+	}
 
+	@And("^the email is sent$")
+	public void theEmailIsSent() throws Throwable {	
+		//chromeDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+		Thread.sleep(3000);
+		chromeDriver.findElement(By.xpath("//div[contains(text(),'Send')]")).click();
+		//chromeDriver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+		WebDriverWait wait = new WebDriverWait(chromeDriver, 10);
+		WebElement elmt = wait.until(
+		        ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(text(), 'Sent')]")));
+		chromeDriver.findElement(By.xpath("//*[contains(text(), 'Sent')]")).click();
+		WebElement email = chromeDriver.findElement(By.xpath("//*[contains(text(), 'Test')]"));
+		assertNotNull(email);
+		chromeDriver.close();
+	}
+
+
+	
 	//Helper fcts
 	public void setupSeleniumDrivers() {
 		if (chromeDriver == null){
-			System.setProperty("webdriver.chrome.driver", "C:\\Users\\ellin_000\\Desktop\\chromedriver.exe");
-			chromeDriver = new ChromeDriver();
+			//System.setProperty("webdriver.chrome.driver", "C:\\Users\\ellin_000\\Desktop\\chromedriver.exe");
+			System.setProperty("chromedriver","chromedriver");
+			chromeDriver= new ChromeDriver();
 			System.out.print("Finished settin up chrome driver.\n");
 		}
 	}
@@ -205,10 +305,10 @@ public class StepDefinition {
 			chromeDriver.get(url);
 		}
 	}
+
 	
 	 public Object ImageTransferable(BufferedImage img) {
          return this.img = img;
      }
-	
-	
+
 }
