@@ -29,7 +29,7 @@ Examples:
 | chaimaefahmi@outlook.com | Image.png |
 | chaimaef@outlook.com     | red.png |
 	
-Scenario: Exceeding the maximum file size limit  
+Scenario Outline: Exceeding the maximum file size limit  
 	
 	Given I am on the new email page
 	When I select the attach file button
