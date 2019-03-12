@@ -11,23 +11,26 @@ Scenario Outline: Attaching file through the file system
 
 Examples:
 | recipient                | image |
-| chaimaefahmi@outlook.com | Image.png |
-| chaimaef@outlook.com     | red.png |
-| chaimae.fahmi@mail.mcgill.ca | red.png|
-| chaimaefahmi@outlook.com | red.png |
-| chaimaef@outlook.com     | Image.png |
+| ellinabrina@hotmail.com | Image.png |
+| ellina.kouam.sangona@gmail.com     | red.png |
+| ellina.kouam-sangona@mail.mcgill.ca | red.png|
+| ellinakouam@gmail.com | red.png |
+| ellinabrina@hotmail.com    | Image.png |
 
 Scenario Outline: Attaching a file by dragging it 
 
 	Given I am on the new email page
 	When I drag a file from my computer into the email page, <image>
-	Then the file is included in my email
-	And the email is sent to <recipent> with my file
+	Then the file <image> is included in my email
+	And the email is sent to <recipient> with my file
 	
 Examples:
 | recipient                | image |
-| chaimaefahmi@outlook.com | Image.png |
-| chaimaef@outlook.com     | red.png |
+| ellinabrina@hotmail.com | Image.png |
+| ellina.kouam.sangona@gmail.com     | red.png |
+| ellina.kouam-sangona@mail.mcgill.ca | red.png|
+| ellinakouam@gmail.com | red.png |
+| ellinabrina@hotmail.com    | Image.png |
 	
 Scenario Outline: Exceeding the maximum file size limit  
 	
@@ -39,8 +42,11 @@ Scenario Outline: Exceeding the maximum file size limit
 
 Examples:
 | recipient                | image |
-| ellinakouam@gmail.com | Image.png |
-| ellinabrina@hotmail.com     | red.png |
+| ellina.kouam.sangona@gmail.com  | largeImage.jpg |
+| ellina.kouam.sangona@gmail.com     | largeImage2.jpg |
+| ellina.kouam.sangona@gmail.com | largeImage3.jpg |
+| ellina.kouam.sangona@gmail.com     | largeImage4.jpg |
+| ellina.kouam.sangona@gmail.com | largeImage5.jpg |
 
 Scenario Outline: Not including an image 
 
@@ -51,7 +57,9 @@ Scenario Outline: Not including an image
 	Then the open button should be non interactable
 
 Examples:
-| recipient     |           
-| chaimaefahmi@outlook.com |
-| chaimaef@outlook.com  |  
-| chaimae.fahmi@mail.mcgill.ca |
+| recipient               
+| ellinabrina@hotmail.com 
+| ellina.kouam.sangona@gmail.com     
+| ellina.kouam-sangona@mail.mcgill.ca 
+| ellinakouam@gmail.com 
+| ellinabrina@hotmail.com    
